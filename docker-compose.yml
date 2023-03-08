@@ -1,0 +1,9 @@
+version: "3.1"
+services:
+
+  lab:
+    image: jupyter/tensorflow-notebook:python-3.10
+    volumes:
+      - ./shared:/home/jovyan/work
+    ports:
+      - "8888:8888"
