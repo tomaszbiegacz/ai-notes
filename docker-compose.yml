@@ -4,6 +4,6 @@ services:
   lab:
     image: jupyter/tensorflow-notebook:python-3.10
     volumes:
-      - ./shared:/home/jovyan/work
+      - ./shared:/home/jovyan/shared
     ports:
       - "8888:8888"

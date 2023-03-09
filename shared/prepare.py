@@ -1,12 +1,15 @@
 from pandas.plotting import scatter_matrix
+from pathlib import Path
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PowerTransformer, FunctionTransformer
 
+import joblib
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 import pandas as pd
 import warnings
 
@@ -17,6 +20,41 @@ import warnings
 
 def assert_isDataFrame(X):
   assert isinstance(X, pd.DataFrame)
+
+#
+# I/O
+#
+
+def loadData_csv_pandas(fileName):
+  file_path = Path("shared/data/" + fileName)
+  return pd.read_csv(file_path)
+
+def buildFileName(setName, variableName):
+  return setName + "-" + variableName
+
+
+def dumpNp(setName, variableName, value):     
+  fileName = buildFileName(setName, variableName) + ".npy"
+  np.save(fileName, value)
+
+def loadNp(setName, variableName):
+  fileName = buildFileName(setName, variableName) + ".npy"
+  return np.load(fileName, allow_pickle=True)
+
+
+def canLoadModel(setName, modelName):
+  fileName = buildFileName(setName, modelName) + ".pkl"
+  return os.path.isfile(fileName)
+
+def dumpModel(setName, modelName, model):
+  fileName = buildFileName(setName, modelName) + ".pkl"
+  joblib.dump(model, fileName)
+
+def loadModel(setName, modelName, buildModel, forceRebuild=False):
+  fileName = buildFileName(setName, modelName) + ".pkl"
+  if forceRebuild or not os.path.isfile(fileName):
+    joblib.dump(buildModel(), fileName)
+  return joblib.load(fileName)
 
 #
 # first look
