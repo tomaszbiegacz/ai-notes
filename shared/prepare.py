@@ -3,7 +3,7 @@ from pathlib import Path
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import rbf_kernel
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.preprocessing import PowerTransformer, FunctionTransformer
 
 import joblib
@@ -37,24 +37,38 @@ def dumpNp(setName, variableName, value):
   fileName = buildFileName(setName, variableName) + ".npy"
   np.save(fileName, value)
 
-def loadNp(setName, variableName):
+def loadNp(setName, variableName, buildArray=None, forceRebuild=False):
   fileName = buildFileName(setName, variableName) + ".npy"
+  if forceRebuild or not os.path.isfile(fileName):
+    if buildArray is None:
+      raise f'Cannot find array [{fileName}], specify "buildArray" parameter'
+    else:
+      np.save(fileName, buildArray())
   return np.load(fileName, allow_pickle=True)
 
-
-def canLoadModel(setName, modelName):
-  fileName = buildFileName(setName, modelName) + ".pkl"
-  return os.path.isfile(fileName)
 
 def dumpModel(setName, modelName, model):
   fileName = buildFileName(setName, modelName) + ".pkl"
   joblib.dump(model, fileName)
 
-def loadModel(setName, modelName, buildModel, forceRebuild=False):
+def loadModel(setName, modelName, buildModel=None, forceRebuild=False):
   fileName = buildFileName(setName, modelName) + ".pkl"
   if forceRebuild or not os.path.isfile(fileName):
-    joblib.dump(buildModel(), fileName)
+    if buildModel is None:
+      raise f'Cannot find model [{fileName}], specify "buildModel" parameter'
+    else:
+      joblib.dump(buildModel(), fileName)
   return joblib.load(fileName)
+
+#
+# estimations
+#
+
+def loadCross_pred(setName, variableName, estimator, X, y, cv=None, n_jobs=-1):
+  return loadNp(setName, variableName, lambda: cross_val_predict(estimator, X, y, cv=cv, n_jobs=n_jobs, method="predict"))
+
+def loadCross_decisionFunction(setName, variableName, estimator, X, y, cv=None, n_jobs=-1):
+  return loadNp(setName, variableName, lambda: cross_val_predict(estimator, X, y, cv=cv, n_jobs=n_jobs, method="decision_function"))
 
 #
 # first look
@@ -125,7 +139,7 @@ def split_stratify(data, column_name, test_size, random_state=None):
   """" split data into (train, test) preserving data distribution in given column according to quantiles"""
   assert_isDataFrame(data)
   train, test = train_test_split(data, test_size=test_size, stratify=data[column_name], random_state=random_state)
-  return (train.sort_index(axis=1), test)
+  return (train.sort_index(axis=1), test)  
 
 #
 # visualisation

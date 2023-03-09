@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, precision_recall_curve, roc_curve, roc_auc_score, ConfusionMatrixDisplay
 
-def precisionRecall_check(model, X, y, cv=None):
-    y_pred = cross_val_predict(model, X, y, cv=cv, n_jobs=-1)
+def precisionRecall_check(model, y, y_pred):
     print(confusion_matrix(y, y_pred))
     print()
     print(f'precision: {precision_score(y, y_pred)}')
