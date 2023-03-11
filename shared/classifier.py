@@ -3,6 +3,12 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score, cross_val_predict
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, precision_recall_curve, roc_curve, roc_auc_score, ConfusionMatrixDisplay
 
+import shared.prepare as sp
+
+#
+# binary
+#
+
 def precisionRecall_check(model, y, y_pred):
     print(confusion_matrix(y, y_pred))
     print()
@@ -47,3 +53,17 @@ def confusionMatrix_from_predictions(y, y_pred):
     ConfusionMatrixDisplay.from_predictions(y, y_pred, normalize="true", sample_weight=(y != y_pred), ax=axs[1], values_format=".0%")
     axs[2].set_title("Classification errors distribution by col")
     ConfusionMatrixDisplay.from_predictions(y, y_pred, normalize="pred", sample_weight=(y != y_pred), ax=axs[2], values_format=".0%")
+
+def check_binary(module, variableName, clfFactory, X, y, forceRebuild=False):
+    clf_name = f'{variableName}_clf'
+    pred_name = f'{variableName}_pred'
+    scores_name = f'{variableName}_scores'
+
+    clf = sp.loadModel(module, clf_name, clfFactory, forceRebuild=forceRebuild)
+    
+    pred = sp.loadCross_pred(module, pred_name, clf, X, y, forceRebuild=forceRebuild)
+    precisionRecall_check(clf, y=y, y_pred=pred)
+
+    scores = sp.loadCross_decisionFunction(module, scores_name, clf, X, y, forceRebuild=forceRebuild)
+    recallFallout_curve(clf, X, y, scores)
+  

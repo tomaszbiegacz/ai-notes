@@ -4,7 +4,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import rbf_kernel
 from sklearn.model_selection import train_test_split, cross_val_predict
-from sklearn.preprocessing import PowerTransformer, FunctionTransformer
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PowerTransformer, FunctionTransformer, StandardScaler
 
 import joblib
 import numpy as np
@@ -59,16 +60,6 @@ def loadModel(setName, modelName, buildModel=None, forceRebuild=False):
     else:
       joblib.dump(buildModel(), fileName)
   return joblib.load(fileName)
-
-#
-# estimations
-#
-
-def loadCross_pred(setName, variableName, estimator, X, y, cv=None, n_jobs=-1):
-  return loadNp(setName, variableName, lambda: cross_val_predict(estimator, X, y, cv=cv, n_jobs=n_jobs, method="predict"))
-
-def loadCross_decisionFunction(setName, variableName, estimator, X, y, cv=None, n_jobs=-1):
-  return loadNp(setName, variableName, lambda: cross_val_predict(estimator, X, y, cv=cv, n_jobs=n_jobs, method="decision_function"))
 
 #
 # first look
@@ -285,3 +276,22 @@ def transformations_compare(X, except_columns=[]):
   assert_isDataFrame(X)
   for column_name in filter(lambda c: not c in except_columns, X.columns):
     transformations_compare_column(X[[column_name]])
+
+def make_standard(model):
+  return make_pipeline(StandardScaler(), model)
+
+#
+# estimations
+#
+
+def loadCross_pred(setName, variableName, estimator, X, y, cv=None, n_jobs=-1, forceRebuild=False):
+  return loadNp(
+    setName, variableName, 
+    lambda: cross_val_predict(estimator, X, y, cv=cv, n_jobs=n_jobs, method="predict"),
+    forceRebuild=forceRebuild)
+
+def loadCross_decisionFunction(setName, variableName, estimator, X, y, cv=None, n_jobs=-1, forceRebuild=False):
+  return loadNp(
+    setName, variableName, 
+    lambda: cross_val_predict(estimator, X, y, cv=cv, n_jobs=n_jobs, method="decision_function"),
+    forceRebuild=forceRebuild)
