@@ -47,6 +47,13 @@ def loadNp(setName, variableName, buildArray=None, forceRebuild=False):
       np.save(fileName, buildArray())
   return np.load(fileName, allow_pickle=True)
 
+def dumpTrainNp(moduleName, X, y):
+  dumpNp(moduleName, "X_train", X)
+  dumpNp(moduleName, "y_train", y)    
+
+def loadTrainNp(moduleName):
+  return (loadNp(moduleName, "X_train"), loadNp(moduleName, "y_train"))
+
 
 def dumpModel(setName, modelName, model):
   fileName = buildFileName(setName, modelName) + ".pkl"
